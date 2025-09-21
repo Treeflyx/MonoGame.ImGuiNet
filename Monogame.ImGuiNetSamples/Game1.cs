@@ -151,7 +151,7 @@ namespace Monogame.ImGuiNetSamples
             GraphicsDevice.BlendState = BlendState.Opaque;
 
             //Draw 3D model
-            if (render_model == 1)
+            if (render_model == 1 && suzanne != null)
             {
                 DrawModel(suzanne, world, view, projection);
             }
@@ -365,7 +365,7 @@ namespace Monogame.ImGuiNetSamples
             {
                 bool enabled = true;
                 ImGui.MenuItem("Enabled", "", enabled);
-                ImGui.BeginChild("child", new Vec2(0, 60), ImGuiChildFlags.Border);
+                ImGui.BeginChild("child", new Vec2(0, 60), ImGuiChildFlags.Borders);
                 for (int i = 0; i < 10; i++)
                 {
                     ImGui.Text(string.Format("Scrolling Text {0}", i));
@@ -1129,11 +1129,12 @@ namespace Monogame.ImGuiNetSamples
                 ImGui.SameLine();
 
                 float spacing = ImGui.GetStyle().ItemInnerSpacing.X;
-                ImGui.PushButtonRepeat(true);
+                ImGuiIOPtr io = ImGui.GetIO();
+                io.KeyRepeatDelay = 0.0f; // Immediate repeat for buttons
                 if (ImGui.ArrowButton("##left", ImGuiDir.Left)) { counter--; }
                 ImGui.SameLine(0.0f, spacing);
                 if (ImGui.ArrowButton("##right", ImGuiDir.Right)) { counter++; }
-                ImGui.PopButtonRepeat();
+                io.KeyRepeatDelay = 0.5f; // Reset to default
                 ImGui.SameLine();
                 ImGui.Text(counter.ToString());
 
@@ -2085,8 +2086,8 @@ namespace Monogame.ImGuiNetSamples
                 {
                     window_flags |= ImGuiWindowFlags.NoScrollWithMouse;
                 }
-                Vec2 content_region_max;
-                ImGui.BeginChild("ChildL", new Vec2(ImGui.GetWindowContentRegionMax().X * 0.5f, 260), ImGuiChildFlags.Border, window_flags);
+                Vec2 content_region_max = ImGui.GetContentRegionAvail();
+                ImGui.BeginChild("ChildL", new Vec2(content_region_max.X * 0.5f, 260), ImGuiChildFlags.Borders, window_flags);
                 for (int i = 0; i < 100; i++)
                 {
                     ImGui.Text(string.Format("{0}: scrollable region", i.ToString("D4")));
@@ -2105,7 +2106,7 @@ namespace Monogame.ImGuiNetSamples
                     window_flags_child2 |= ImGuiWindowFlags.MenuBar;
                 }
                 ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5.0f);
-                ImGui.BeginChild("ChildR", new Vec2(0, 260), ImGuiChildFlags.Border, window_flags_child2);
+                ImGui.BeginChild("ChildR", new Vec2(0, 260), ImGuiChildFlags.Borders, window_flags_child2);
                 if (!disable_menu && ImGui.BeginMenuBar())
                 {
                     if (ImGui.BeginMenu("Menu"))
@@ -2134,7 +2135,7 @@ namespace Monogame.ImGuiNetSamples
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (float)offset_x);
                 Vec4 colv4 = new Vec4(255.0f, 0.0f, 0.0f, 100.0f);
                 ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertFloat4ToU32(colv4));
-                ImGui.BeginChild("Red", new Vec2(200, 100), ImGuiChildFlags.Border, ImGuiWindowFlags.None);
+                ImGui.BeginChild("Red", new Vec2(200, 100), ImGuiChildFlags.Borders, ImGuiWindowFlags.None);
                 for (int n = 0; n < 50; n++)
                 {
                     ImGui.Text("Some test " + n.ToString());
@@ -2278,7 +2279,7 @@ namespace Monogame.ImGuiNetSamples
                 // (we should eventually provide this as an automatic layout feature, but for now you can do it manually)
                 ImGui.Text("Manually wrapping:");
                 int buttons_count = 20;
-                float window_visible_x2 = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
+                float window_visible_x2 = ImGui.GetWindowPos().X + ImGui.GetContentRegionAvail().X;
                 for (int n = 0; n < buttons_count; n++)
                 {
                     ImGui.PushID(n);
@@ -2494,7 +2495,7 @@ namespace Monogame.ImGuiNetSamples
 
                     ImGuiWindowFlags child_flags = enable_extra_decorations ? ImGuiWindowFlags.MenuBar : 0;
                     string child_id = names[i];
-                    bool child_is_visible = ImGui.BeginChild(child_id, new Vec2(child_w, 200.0f), ImGuiChildFlags.Border, child_flags);
+                    bool child_is_visible = ImGui.BeginChild(child_id, new Vec2(child_w, 200.0f), ImGuiChildFlags.Borders, child_flags);
                     if (ImGui.BeginMenuBar())
                     {
                         ImGui.TextUnformatted("abc");
@@ -2545,7 +2546,7 @@ namespace Monogame.ImGuiNetSamples
                     ImGuiWindowFlags child_flags = ImGuiWindowFlags.HorizontalScrollbar | (enable_extra_decorations ? ImGuiWindowFlags.AlwaysVerticalScrollbar : 0);
                     string[] names = { "Left", "25%", "Center", "75%", "Right" };
                     string child_id = names[i];
-                    bool child_is_visible = ImGui.BeginChild(child_id, new Vec2(-100, child_height), ImGuiChildFlags.Border, child_flags);
+                    bool child_is_visible = ImGui.BeginChild(child_id, new Vec2(-100, child_height), ImGuiChildFlags.Borders, child_flags);
                     if (scroll_to_off)
                     {
                         ImGui.SetScrollX(scroll_to_off_px);
@@ -2986,7 +2987,6 @@ namespace Monogame.ImGuiNetSamples
                 ImGui.Separator();
 
                 ImGui.Text("Camera");
-                ImGui.PushButtonRepeat(true);
 
                 ImGui.Indent();
                 if (ImGui.ArrowButton("up", ImGuiDir.Up)) //ImGui.Button("Up"))
@@ -3012,7 +3012,7 @@ namespace Monogame.ImGuiNetSamples
                     world = world * Matrix.CreateRotationX(-0.1f);
                 }
                 ImGui.Unindent();
-                ImGui.PopButtonRepeat();
+                // Button repeat behavior removed in current ImGui.NET; simple clicks still rotate the model
 
                 ImGui.PopStyleColor();
                 ImGui.PopStyleColor();
